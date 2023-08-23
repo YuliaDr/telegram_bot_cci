@@ -1,155 +1,45 @@
-from aiogram.types import KeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
-
-from lexicon.lexicon_ru import LEXICON_RU
-
-
-# ------- Создаем клавиатуру с разделами -------
-
-# Создаем кнопки с ответами согласия и отказа
-sections_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['section_1']),
-    KeyboardButton(text=LEXICON_RU['section_2']),
-    KeyboardButton(text=LEXICON_RU['section_3']),
-    KeyboardButton(text=LEXICON_RU['section_4']),
-    KeyboardButton(text=LEXICON_RU['section_5'])
-    ]
-
-# Инициализируем билдер для клавиатуры с разделами
-sections_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
-
-# Распаковываем список в методом add
-sections_kb_builder.add(*sections_buttons)
-
-# Добавляем кнопки в билдер с параметром поочередно по 2 и по 1 в рядах
-sections_kb_builder.adjust(2, 1, repeat=True)
-
-# Создаем клавиатуру с разделами
-sections_kb = sections_kb_builder.as_markup(
-    resize_keyboard=True,
-    input_field_placeholder='Выберите раздел'
-)
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from lexicon.lexicon_ru import LEXICON_RU, LEXICON_SECTIONS
 
 
-# ------- Создаем кнопку "Назад" -------
-back_button: KeyboardButton = KeyboardButton(text=LEXICON_RU['back'])
+# Функция генерации клавиатуры с разделами
+async def generate_sections_keyboard(width: int = 2):
+    sections = list(LEXICON_SECTIONS.keys())
+    kb_builder: InlineKeyboardBuilder = InlineKeyboardBuilder()
+    buttons: list[InlineKeyboardButton] = []
+
+    for i, section in enumerate(sections):
+        buttons.append(InlineKeyboardButton(text=section, callback_data=f"section_{i}"))
+
+    kb_builder.row(*buttons, width=width)
+
+    return kb_builder.as_markup()
 
 
-# ------- Создаем клавиатуру с вопросами первого раздела -------
+# Функция генерации клавиатуры с вопросами раздела
+async def generate_questions_keyboard(section_name: str, section_num: int, width: int = 1):
+    sections = LEXICON_SECTIONS
+    kb_builder: InlineKeyboardBuilder = InlineKeyboardBuilder()
+    buttons: list[InlineKeyboardButton] = []
 
-# Создаем кнопки клавиатуры первого раздела
-section_1_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['question_1_1']),
-    KeyboardButton(text=LEXICON_RU['question_1_2']),
-    KeyboardButton(text=LEXICON_RU['question_1_3']),
-    back_button
-    ]
+    for i, question in enumerate(sections[section_name]):
+        buttons.append(InlineKeyboardButton(text=question, callback_data=f"question_{section_num}_{i}"))
 
-# Инициализируем билдер для клавиатуры первого раздела
-section_1_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
+    buttons.append(InlineKeyboardButton(text=LEXICON_RU["back_to_sections"], callback_data="back_to_sections"))
+    kb_builder.row(*buttons, width=width)
 
-# Распаковываем список в методом add
-section_1_kb_builder.add(*section_1_buttons)
-
-# Добавляем кнопки в билдер с параметром поочередно по 2 и по 1 в рядах
-section_1_kb_builder.adjust(2, 1, 1, repeat=True)
-
-# Создаем клавиатуру первого раздела
-section_1_kb = section_1_kb_builder.as_markup(resize_keyboard=True)
+    return kb_builder.as_markup()
 
 
+# Функция генерации клавиатуры с кнопками "Вернуться к разделам" и "Назад"
+async def generate_answer_keyboard(section_num: int):
+    back_button = InlineKeyboardButton(
+        text=LEXICON_RU["back_to_questions"], callback_data=f"back_{section_num}")
+    back_to_sections_button = InlineKeyboardButton(
+        text=LEXICON_RU["back_to_sections"], callback_data="back_to_sections")
 
-# ------- Создаем клавиатуру с вопросами второго раздела -------
+    keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
+        inline_keyboard=[[back_button], [back_to_sections_button]])
 
-# Создаем кнопки клавиатуры второго раздела
-section_2_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['question_2_1']),
-    KeyboardButton(text=LEXICON_RU['question_2_2']),
-    KeyboardButton(text=LEXICON_RU['question_2_3']),
-    KeyboardButton(text=LEXICON_RU['question_2_4']),
-    back_button
-    ]
-
-# Инициализируем билдер для клавиатуры второго раздела
-section_2_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
-
-# Распаковываем список в методом add
-section_2_kb_builder.add(*section_2_buttons)
-
-# Добавляем кнопки в билдер с параметром по 2 в рядах
-section_2_kb_builder.adjust(2, repeat=True)
-
-# Создаем клавиатуру второго раздела
-section_2_kb = section_2_kb_builder.as_markup(resize_keyboard=True)
-
-
-
-# ------- Создаем клавиатуру с вопросами третьего раздела -------
-
-# Создаем кнопки клавиатуры третьего раздела
-section_3_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['question_3_1']),
-    KeyboardButton(text=LEXICON_RU['question_3_2']),
-    back_button
-    ]
-
-# Инициализируем билдер для клавиатуры третьего раздела
-section_3_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
-
-# Распаковываем список в методом add
-section_3_kb_builder.add(*section_3_buttons)
-
-# Добавляем кнопки в билдер с параметром по 2 в рядах
-section_3_kb_builder.adjust(2, repeat=True)
-
-# Создаем клавиатуру третьего раздела
-section_3_kb = section_3_kb_builder.as_markup(resize_keyboard=True)
-
-
-
-# ------- Создаем клавиатуру с вопросами четвертого раздела -------
-
-# Создаем кнопки клавиатуры четвертого раздела
-section_4_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['question_4_1']),
-    KeyboardButton(text=LEXICON_RU['question_4_2']),
-    KeyboardButton(text=LEXICON_RU['question_4_3']),
-    KeyboardButton(text=LEXICON_RU['question_4_4']),
-    KeyboardButton(text=LEXICON_RU['question_4_5']),
-    KeyboardButton(text=LEXICON_RU['question_4_6']),
-    back_button
-    ]
-
-# Инициализируем билдер для клавиатуры четвертого раздела
-section_4_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
-
-# Распаковываем список в методом add
-section_4_kb_builder.add(*section_4_buttons)
-
-# Добавляем кнопки в билдер с параметром поочередно по 2 и по 1 в рядах
-section_4_kb_builder.adjust(3, repeat=True)
-
-# Создаем клавиатуру четвертого раздела
-section_4_kb = section_4_kb_builder.as_markup(resize_keyboard=True)
-
-
-
-# ------- Создаем клавиатуру с вопросами пятого раздела -------
-
-# Создаем кнопки клавиатуры пятого раздела
-section_5_buttons: list[KeyboardButton] = [
-    KeyboardButton(text=LEXICON_RU['question_5_1']),
-    back_button
-    ]
-
-# Инициализируем билдер для клавиатуры пятого раздела
-section_5_kb_builder: ReplyKeyboardBuilder = ReplyKeyboardBuilder()
-
-# Распаковываем список в методом add
-section_5_kb_builder.add(*section_5_buttons)
-
-# # Добавляем кнопки в билдер с параметром поочередно по 2 и по 1 в рядах
-section_5_kb_builder.adjust(1, repeat=True)
-
-# Создаем клавиатуру пятого раздела
-section_5_kb = section_5_kb_builder.as_markup(resize_keyboard=True)
+    return keyboard
